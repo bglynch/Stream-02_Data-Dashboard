@@ -8,22 +8,24 @@ function makeCharts(error, corkPlanningData) {
 
     let parseDate = d3.time.format("%Y-%m-%dT%H:%M:%S").parse;
 
+    // Add new column to dataset for Day of Week Received
     corkPlanningData.forEach(function(d) {
         d.ReceivedDate = parseDate(d.ReceivedDate); // string to date
-        d.ReceivedDateDay = d.ReceivedDate.getDay(); // date to day
+        d.ReceivedDateDay = d.ReceivedDate.getDay(); // date to day. makes new column in array
         //console.log(d.ReceivedDate);
-        //console.log(d.ReceivedDate.getDay());
+        //console.log(d.ReceivedDateDay);
     });
-    console.log(corkPlanningData);
+
+    // Add new column to dataset for Change of Use Application
+
 
     //console.log(corkPlanningData);
-    // console.log(typeof(corkPlanningData[0].DecisionDueDate));
-
-
+    //console.log(typeof(corkPlanningData[0].DecisionDueDate));
 
     show_one_off_houses(ndx);
     application_type(ndx);
     show_application_by_day(ndx);
+    show_application_over_time(ndx);
 
     dc.renderAll();
 }
@@ -65,26 +67,29 @@ function application_type(ndx) {
 function show_application_by_day(ndx) {
 
     //var dateToDay = ReceivedDate.getDay();
-   // var dayDim = ndx.dimension(dc.pluck("ReceivedDateDay"));
-    var dayDim = ndx.dimension(function(d){
-        if (d.ReceivedDateDay == 1){
-            return "Monday"
-        }else if (d.ReceivedDateDay == 2){
-            return "Tuesday"
-        }else if (d.ReceivedDateDay == 3){
-            return "Wednesday"
-        }else if (d.ReceivedDateDay == 4){
-            return "Thursday"
-        }else{
-        return "Friday"
+    // var dayDim = ndx.dimension(dc.pluck("ReceivedDateDay"));
+    var dayDim = ndx.dimension(function(d) {
+        if (d.ReceivedDateDay == 1) {
+            return "1.Monday";
         }
-    })
-    
-    console.log(dayDim);
+        else if (d.ReceivedDateDay == 2) {
+            return "2.Tuesday";
+        }
+        else if (d.ReceivedDateDay == 3) {
+            return "3.Wednesday";
+        }
+        else if (d.ReceivedDateDay == 4) {
+            return "4.Thursday";
+        }
+        else if (d.ReceivedDateDay == 5) {
+            return "5.Friday";
+        }
+    });
+
     var dayGroup = dayDim.group();
 
     dc.barChart("#application-by-day")
-        .width(350)
+        .width(550)
         .height(250)
         .margins({ top: 10, right: 50, bottom: 30, left: 50 })
         .dimension(dayDim)
@@ -93,8 +98,23 @@ function show_application_by_day(ndx) {
         .x(d3.scale.ordinal())
         .xUnits(dc.units.ordinal)
         .xAxisLabel("Day Application Received")
+        .margins({ top: 10, right: 50, bottom: 50, left: 150 })
         .yAxis().ticks(20);
-        
+}
 
+function show_application_over_time(ndx) {
+    var dateDim = ndx.dimension(dc.pluck("ReceivedDate"));
+    var dateGroup = dateDim.group();
 
+    var minDate = dateDim.bottom(1)[0].ReceivedDate;
+    var maxDate = dateDim.top(1)[0].ReceivedDate;
+
+    dc.lineChart("#applications-over-time")
+        .width(1400)
+        .height(300)
+        .dimension(dateDim)
+        .group(dateGroup)
+        .x(d3.time.scale().domain([minDate, maxDate]))
+        .xAxisLabel("Applications")
+        .margins({ top: 10, right: 50, bottom: 50, left: 150 });
 }
